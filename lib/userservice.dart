@@ -60,7 +60,7 @@ class User {
 class UserService {
   Future<List<User>> getUser() async {
     final response = await http.get(Uri.parse(
-        'https://randomuser.me/api?results=50&seed=galaxies'));
+        'https://randomuser.me/api?results=50'));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);

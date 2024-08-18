@@ -22,34 +22,42 @@ class _HomepageState extends State<Homepage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('People')),
-      body: Center(
-        child: FutureBuilder<List<User>>(
-          future: futureUsers,
-          builder: (context, AsyncSnapshot<List<User>> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
-            } else if (snapshot.hasError) {
-              return Text('Error: ${snapshot.error}');
-            } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-              return ListView.separated(
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, index) {
-                  User user = snapshot.data![index];
-                  return ListTile(
-                    title: Text(user.email),
-                    subtitle: Text(user.name?.first ?? 'No name available'), // Safe access with fallback
-                    trailing: const Icon(Icons.chevron_right_outlined),
-                    onTap: () => openPage(context, user),
-                  );
-                },
-                separatorBuilder: (context, index) {
-                  return const Divider(color: Colors.black26);
-                },
-              );
-            } else {
-              return const Text('No users found.');
-            }
-          },
+      body: RefreshIndicator(
+        onRefresh: () async{
+          var users = await UserService().getUser();
+          setState(() {
+            futureUsers = Future.value(users);
+          });
+      },
+        child: Center(
+          child: FutureBuilder<List<User>>(
+            future: futureUsers,
+            builder: (context, AsyncSnapshot<List<User>> snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                return ListView.separated(
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    User user = snapshot.data![index];
+                    return ListTile(
+                      title: Text(user.email),
+                      subtitle: Text(user.name?.first ?? 'No name available'), // Safe access with fallback
+                      trailing: const Icon(Icons.chevron_right_outlined),
+                      onTap: () => openPage(context, user),
+                    );
+                  },
+                  separatorBuilder: (context, index) {
+                    return const Divider(color: Colors.black26);
+                  },
+                );
+              } else {
+                return const Text('No users found.');
+              }
+            },
+          ),
         ),
       ),
     );
